@@ -17,7 +17,6 @@ User = get_user_model()
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
 
-
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostCreateFormTests(TestCase):
     @classmethod
@@ -113,9 +112,11 @@ class PostCreateFormTests(TestCase):
         """Проверка на запрет
         комментирования постов для гостя
         """
-        response = self.guest_client.post(reverse('posts:add_comment', args={self.post.pk}))
+        response = self.guest_client.post(
+            reverse('posts:add_comment', args={self.post.pk}))
         path_redirect = reverse('users:login')
-        path_comment = reverse('posts:add_comment', args={self.post.pk})
+        path_comment = reverse('posts:add_comment',
+                               args={self.post.pk})
         self.assertRedirects(response,
                              f'{path_redirect}?next={path_comment}',
                              HTTPStatus.FOUND)

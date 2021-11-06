@@ -1,5 +1,4 @@
 from django import forms
-from django.forms import fields
 from django.utils.translation import gettext_lazy as _
 
 from .models import Comment, Post

@@ -89,10 +89,14 @@ class PostPagesTests(TestCase):
         post_group_0 = first_object.group
         post_image = first_object.image
         return self.assert_equal_method(
-            post_pub_date_0, post_text_0, post_author_0, post_group_0, post_image)
+            post_pub_date_0, post_text_0, post_author_0,
+            post_group_0, post_image)
 
     def test_post_detail_page_show_correct_context(self):
-        """Шаблон post_detail сформирован с правильны контекстом и комментарем."""
+        """
+        Шаблон post_detail сформирован с правильны
+        контекстом и комментарем.
+        """
         response = (self.authorized_client.
                     get(reverse('posts:post_detail', args={self.post.pk})))
         self.assertEqual(response.context.get('post').text, self.post.text)
@@ -113,7 +117,8 @@ class PostPagesTests(TestCase):
         post_group_0 = first_object.group
         post_image = first_object.image
         return self.assert_equal_method(
-            post_pub_date_0, post_text_0, post_author_0, post_group_0, post_image)
+            post_pub_date_0, post_text_0, post_author_0,
+            post_group_0, post_image)
 
     def test_profrle_page_show_correct_context(self):
         """Шаблон profrle сформирован с правильны контекстом."""
@@ -126,7 +131,8 @@ class PostPagesTests(TestCase):
         post_author_0 = first_object.author
         post_image = first_object.image
         return self.assert_equal_method(
-            post_pub_date_0, post_text_0, post_author_0, post_group_0, post_image)
+            post_pub_date_0, post_text_0, post_author_0,
+            post_group_0, post_image)
 
     def test_create_page_show_correct_context(self):
         """Типы полей форм create/edit соответствуют ожиданиям"""
@@ -210,7 +216,7 @@ class PostPagesTests(TestCase):
         self.assertRedirects(response, reverse(
             'posts:profile', args={self.post.author}))
         self.assertEqual(Follow.objects.count(), follow_count)
-    
+
     def test_auth_follow_re(self):
         follow_count = Follow.objects.count()
         response = self.authorized_client.post(
@@ -218,6 +224,7 @@ class PostPagesTests(TestCase):
         self.assertRedirects(response, reverse(
             'posts:profile', args={self.post_two.author}), HTTPStatus.FOUND)
         self.assertEqual(Follow.objects.count(), follow_count)
+
 
 class PaginatorViewsTest(TestCase):
 
