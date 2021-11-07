@@ -24,7 +24,7 @@
       <p>{{ post.text }}</p>
       <a href="{% url 'posts:post_detail' post.pk %}">подробная информация</a>
       </article>
-      <a href="{% if post.group != Null %}
+      <a href="{% if post.group != None %}
         {% url 'posts:group_list' post.group.slug %} 
         {% endif %}">все записи группы</a>        
        

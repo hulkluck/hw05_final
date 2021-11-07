@@ -10,7 +10,7 @@
       <ul>
       <li>
         Автор: {{ post.author.get_full_name }}
-        <a href="{% if post.author != Null %}
+        <a href="{% if post.author != None %}
         {% url 'posts:profile' post.author.username %} {% endif %}">
         все посты пользователя
         </a>
@@ -23,7 +23,7 @@
                   <img class="card-img my-2" src="{{ im.url }}">
           {% endthumbnail %}
       <p>{{ post.text }}</p>    
-      <a href="{% if post.group != Null %}
+      <a href="{% if post.group != None %}
       {% url 'posts:group_list' post.group.slug %} {% endif %}">все записи группы</a>
       {% if not forloop.last %}<hr>{% endif %}
     {% endfor %}

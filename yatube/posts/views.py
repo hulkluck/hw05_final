@@ -53,8 +53,7 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    author = Post.objects.filter(author=post.author)
-    sum_count = author.count()
+    sum_count = Post.objects.filter(author=post.author).count()
     form = CommentForm(request.POST or None)
     comments = post.comments.all()
     context = {
@@ -123,22 +122,19 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    user = request.user
     author = get_object_or_404(User, username=username)
-    if author == user:
+    if author == request.user:
         return redirect('posts:profile', author)
-    elif request.user.is_authenticated and Follow.objects.filter(
-        user=request.user, author=author
-    ).exists():
-        return redirect('posts:profile', author)
-    else:
-        Follow.objects.create(user=user, author=author)
-        return redirect('posts:profile', author)
+    Follow.objects.get_or_create(
+        user=request.user,
+        author=author,
+    )
+    return redirect('posts:profile', author)
 
 
 @login_required
 def profile_unfollow(request, username):
-    user = request.user
     author = get_object_or_404(User, username=username)
-    Follow.objects.filter(user=user, author=author).delete()
+    Follow.objects.filter(user=request.user,
+                          author=author).delete()
     return redirect('posts:profile', author)

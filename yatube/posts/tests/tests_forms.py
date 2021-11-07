@@ -9,7 +9,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls.base import reverse
 
 from posts.forms import PostForm
-from posts.models import Post
+from posts.models import Post, Comment
 
 
 User = get_user_model()
@@ -27,7 +27,11 @@ class PostCreateFormTests(TestCase):
             text='Тестовый текст',
             author=User.objects.create_user(username='SeyMyName'),
         )
-
+        cls.comment = Comment.objects.create(
+            text='Мой первый комментарий',
+            author=User.objects.create_user(username='CommentMan'),
+            post=cls.post
+        )
         cls.form = PostForm()
 
     @classmethod
@@ -120,3 +124,12 @@ class PostCreateFormTests(TestCase):
         self.assertRedirects(response,
                              f'{path_redirect}?next={path_comment}',
                              HTTPStatus.FOUND)
+
+    def test_post_detail_page_show_correct_comment(self):
+        """
+        Шаблон post_detail сформирован с правильным
+        комментарем.
+        """
+        response = (self.authorized_client.
+                    get(reverse('posts:post_detail', args={self.post.pk})))
+        self.assertEqual(response.context['comments'][0], self.comment)

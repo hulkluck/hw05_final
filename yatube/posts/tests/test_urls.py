@@ -45,6 +45,7 @@ class StaticURLTests(TestCase):
         authorized_pages = [
             '/create/',
             f'/posts/{self.post.pk}/edit/',
+            '/follow/',
         ]
         for page in authorized_pages:
             with self.subTest(page=page):
@@ -60,6 +61,7 @@ class StaticURLTests(TestCase):
             '/create/': 'posts/create_post.html',
             f'/posts/{self.post.pk}/': 'posts/post_detail.html',
             f'/posts/{self.post.pk}/edit/': 'posts/create_post.html',
+            '/follow/': 'posts/follow.html',
         }
         for url, template in templates_url_names.items():
             with self.subTest(url=url):

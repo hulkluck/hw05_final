@@ -27,7 +27,7 @@ handler404 = 'core.views.page_not_found'
 urlpatterns = [
     path('auth/', include('users.urls', namespace='users')),
     path('auth/', include('django.contrib.auth.urls')),
-    path('', include('posts.usrls', namespace='posts')),
+    path('', include('posts.urls', namespace='posts')),
     path('about/', include('about.urls', namespace='about')),
     path('admin/', admin.site.urls),
 ]

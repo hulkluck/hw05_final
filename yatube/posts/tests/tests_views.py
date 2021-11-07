@@ -1,11 +1,10 @@
-from http import HTTPStatus
 from django import forms
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 from yatube.settings import POSTS_PER_PAGE, POSTS_PER_PAGE_TEST
 
-from posts.models import Group, Post, Comment, Follow
+from posts.models import Group, Post, Comment
 
 
 User = get_user_model()
@@ -27,7 +26,7 @@ class PostPagesTests(TestCase):
         )
         cls.post = Post.objects.create(
             text='Текст',
-            author=cls.follow.user,
+            author=User.objects.create_user(username='Following'),
             group=cls.group,
         )
         cls.post_two = Post.objects.create(
@@ -40,14 +39,10 @@ class PostPagesTests(TestCase):
             author=User.objects.create_user(username='CommentMan'),
             post=cls.post
         )
-        cls.follow = Follow.objects.create(
-            user=User.objects.create_user(username='Follower'),
-            author=cls.post_two.author
-        )
-
+        
     def setUp(self):
         self.guest_client = Client()
-        self.user = self.follow.user
+        self.user = self.comment.author
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -60,9 +55,9 @@ class PostPagesTests(TestCase):
             'posts/post_detail.html',
             reverse('posts:post_create'):
             'posts/create_post.html',
-            reverse('posts:profile', args={'SeyMyName'}):
+            reverse('posts:profile', args={self.post_two.author}):
             'posts/profile.html',
-            reverse('posts:group_list', kwargs={'slug': 'slug_test'}):
+            reverse('posts:group_list', kwargs={'slug': self.group.slug}):
             'posts/group_list.html',
             reverse('posts:index'): 'posts/index.html',
             reverse('posts:follow_index'): 'posts/follow.html'
@@ -104,12 +99,11 @@ class PostPagesTests(TestCase):
         self.assertEqual(response.context.get('post').group, self.post.group)
         self.assertEqual(response.context.get(
             'post').pub_date, self.post.pub_date)
-        self.assertEqual(response.context['comments'][0], self.comment)
 
     def test_group_list_page_show_correct_context(self):
         """Шаблон group_list сформирован с правильны контекстом."""
         response = self.authorized_client.get(
-            reverse('posts:group_list', kwargs={'slug': 'slug_test'}))
+            reverse('posts:group_list', kwargs={'slug': self.group.slug}))
         first_object = response.context['page_obj'][0]
         post_pub_date_0 = first_object.pub_date
         post_text_0 = first_object.text
@@ -123,7 +117,7 @@ class PostPagesTests(TestCase):
     def test_profrle_page_show_correct_context(self):
         """Шаблон profrle сформирован с правильны контекстом."""
         response = self.authorized_client.get(
-            reverse('posts:profile', args={'Follower'}))
+            reverse('posts:profile', args={self.post.author}))
         first_object = response.context['page_obj'][0]
         post_pub_date_0 = first_object.pub_date
         post_text_0 = first_object.text
@@ -154,7 +148,7 @@ class PostPagesTests(TestCase):
     def test_group_list_two_not_in_context(self):
         """Проверка на осутствие поста в другой группе."""
         response = self.authorized_client.get(
-            reverse('posts:group_list', kwargs={'slug': 'slug_test_two'}))
+            reverse('posts:group_list', kwargs={'slug': self.group_two.slug}))
         first_object = response.context['page_obj'][0]
         post_author_0 = first_object.author
         post_text_0 = first_object.text
@@ -163,67 +157,6 @@ class PostPagesTests(TestCase):
         self.assertNotEqual(post_text_0, self.post.text)
         self.assertNotEqual(post_author_0, self.post.author)
         self.assertNotEqual(post_group_0, self.post.group)
-
-    def test_following_auth_user(self):
-        """
-        Проверка подписки на авторов
-        """
-        follow_count = Follow.objects.count()
-        Follow.objects.create(user=self.user, author=self.post.author)
-        self.assertEqual(Follow.objects.count(), follow_count + 1)
-
-    def test_unfollowing_auth_user(self):
-        """
-        Проверка отписки от авторов
-        """
-        follow_count = Follow.objects.count()
-        Follow.objects.filter(user=self.follow.user,
-                              author=self.follow.author).delete()
-        self.assertEqual(Follow.objects.count(), follow_count - 1)
-
-    def test_follow_page_correct_contex_auth_user(self):
-        """
-        Проверка страницы follow на отображение правильного контекста
-        """
-        response = self.authorized_client.get(
-            reverse('posts:follow_index'))
-        first_object = response.context['page_obj'][0]
-        post_author = first_object.author
-        post_text = first_object.text
-        self.assertEqual(post_text, self.post_two.text)
-        self.assertEqual(post_author, self.post_two.author)
-
-    def test_follow_page_correct_contex_next_user(self):
-        """
-        Проверка страницы follow на отображение правильного кконтекста
-        с другим юзером
-        """
-        response = self.authorized_client.get(
-            reverse('posts:follow_index'))
-        first_object = response.context['page_obj'][0]
-        post_author = first_object.author
-        post_text = first_object.text
-        self.assertNotEqual(post_text, self.post.text)
-        self.assertNotEqual(post_author, self.post.author)
-
-    def test_auth_follow_auth(self):
-        """
-        Проверка запрета подписки на себя любимого
-        """
-        follow_count = Follow.objects.count()
-        response = self.authorized_client.post(
-            reverse('posts:profile_follow', args={self.post.author}))
-        self.assertRedirects(response, reverse(
-            'posts:profile', args={self.post.author}))
-        self.assertEqual(Follow.objects.count(), follow_count)
-
-    def test_auth_follow_re(self):
-        follow_count = Follow.objects.count()
-        response = self.authorized_client.post(
-            reverse('posts:profile_follow', args={self.post_two.author}))
-        self.assertRedirects(response, reverse(
-            'posts:profile', args={self.post_two.author}), HTTPStatus.FOUND)
-        self.assertEqual(Follow.objects.count(), follow_count)
 
 
 class PaginatorViewsTest(TestCase):
@@ -243,8 +176,8 @@ class PaginatorViewsTest(TestCase):
         cls.guest_client = Client()
         cls.pages_uses_paginator = [
             reverse('posts:index'),
-            reverse('posts:profile', kwargs={'username': 'test_user'}),
-            reverse('posts:group_list', kwargs={'slug': 'test_slug'}),
+            reverse('posts:profile', kwargs={'username': cls.user}),
+            reverse('posts:group_list', kwargs={'slug': cls.group.slug}),
         ]
 
     def test_first_page_contains_ten_records(self):
