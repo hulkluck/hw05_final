@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.core.cache import cache
 
 from posts.models import Group, Post
 
@@ -31,16 +32,12 @@ class CacheTests(TestCase):
     def test_cache_index_page(self):
         """Проверка работоспособности кэш."""
         response = self.authorized_client.get(reverse('posts:index'))
-        first_object = response.context['page_obj'][0]
+        cache_save = response.content
         self.post.delete()
-        post_pub_date_0 = first_object.pub_date
-        post_text_0 = first_object.text
-        post_author_0 = first_object.author
-        post_group_0 = first_object.group
-        post_image = first_object.image
-
-        self.assertEqual(post_text_0, self.post.text)
-        self.assertEqual(post_pub_date_0, self.post.pub_date)
-        self.assertEqual(post_author_0, self.post.author)
-        self.assertEqual(post_group_0, self.post.group)
-        self.assertEqual(post_image, self.post.image)
+        response = self.authorized_client.get(reverse('posts:index'))
+        cache_after_del = response.content
+        self.assertEqual(cache_after_del, cache_save)
+        cache.clear()
+        response = self.authorized_client.get(reverse('posts:index'))
+        cache_afte_clear = response.content
+        self.assertNotEqual(cache_afte_clear, cache_save)
