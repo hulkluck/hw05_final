@@ -56,9 +56,6 @@ class Post(models.Model):
 
 class Comment(models.Model):
 
-    class Meta:
-        ordering = ['-created']
-
     post = models.ForeignKey(
         Post,
         related_name='comments',
@@ -77,6 +74,9 @@ class Comment(models.Model):
         auto_now_add=True,
         verbose_name='Дата публикации комментария'
     )
+
+    class Meta:
+        ordering = ['-created']
 
 
 class Follow(models.Model):
