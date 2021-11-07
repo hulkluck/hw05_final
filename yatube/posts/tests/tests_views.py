@@ -39,7 +39,7 @@ class PostPagesTests(TestCase):
             author=User.objects.create_user(username='CommentMan'),
             post=cls.post
         )
-        
+
     def setUp(self):
         self.guest_client = Client()
         self.user = self.comment.author

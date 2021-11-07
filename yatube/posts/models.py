@@ -14,7 +14,7 @@ class Group(models.Model):
 
 
 class Post(models.Model):
-    
+
     text = models.TextField(
         verbose_name='Текст',
         help_text='Вводите текст поста в это поле'
@@ -44,10 +44,11 @@ class Post(models.Model):
         upload_to='posts/',
         blank=True,
     )
+
     class Meta:
-            ordering = ['-pub_date']
-            verbose_name = 'Пост'
-            verbose_name_plural = 'Посты'
+        ordering = ['-pub_date']
+        verbose_name = 'Пост'
+        verbose_name_plural = 'Посты'
 
     def __str__(self):
         return self.text[:15]
@@ -94,5 +95,5 @@ class Follow(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['author', 'user'],
-                             name='unique_following')
+                                    name='unique_following')
         ]
